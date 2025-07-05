@@ -1,4 +1,4 @@
-// PDF Generation function with improved A4 rendering and email functionality
+// PDF Generation function with improved single-page A4 rendering
 async function generatePDF() {
     const { jsPDF } = window.jspdf;
     
@@ -9,98 +9,170 @@ async function generatePDF() {
         pdfBtn.innerHTML = '<span>⏳</span> Gerando PDF...';
         pdfBtn.disabled = true;
         
-        // Hide the PDF button temporarily
-        const pdfContainer = document.querySelector('.pdf-button-container');
-        pdfContainer.style.display = 'none';
-        
         // Get the form content
         const element = document.getElementById('form-content');
         
-        // Create a temporary container optimized for A4 PDF generation
+        // Create a temporary container optimized for single-page A4 PDF
         const tempContainer = document.createElement('div');
         tempContainer.style.cssText = `
             position: absolute;
             top: -9999px;
             left: -9999px;
-            width: 794px;
+            width: 210mm;
+            min-height: 297mm;
             background: white;
             font-family: Arial, sans-serif;
-            padding: 30px;
+            padding: 15mm;
             box-sizing: border-box;
-            font-size: 11px;
-            line-height: 1.3;
+            font-size: 10px;
+            line-height: 1.2;
             color: #333;
+            overflow: hidden;
         `;
         
         // Clone the content
         const clonedElement = element.cloneNode(true);
         
-        // Apply A4-specific styles to the cloned element
-        clonedElement.style.cssText = `
-            width: 734px;
-            margin: 0;
-            padding: 0;
-            background: white;
-            font-size: 11px;
-            line-height: 1.3;
-            color: #333;
+        // Add PDF optimization class
+        clonedElement.classList.add('pdf-optimized');
+        
+        // Apply compact styles for single-page layout
+        const compactStyles = `
+            <style>
+                .pdf-optimized * {
+                    box-sizing: border-box;
+                }
+                .pdf-optimized {
+                    width: 180mm !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    font-size: 9px !important;
+                    line-height: 1.1 !important;
+                }
+                .pdf-optimized .header-container {
+                    margin-bottom: 8px !important;
+                    border: 1.5px solid #333 !important;
+                }
+                .pdf-optimized .header-content {
+                    padding: 8px !important;
+                    gap: 8px !important;
+                }
+                .pdf-optimized .logo {
+                    width: 40px !important;
+                    height: 40px !important;
+                    font-size: 14px !important;
+                }
+                .pdf-optimized .company-text h1 {
+                    font-size: 16px !important;
+                    margin-bottom: 1px !important;
+                }
+                .pdf-optimized .company-text p {
+                    font-size: 9px !important;
+                }
+                .pdf-optimized .title-section,
+                .pdf-optimized .instruction-section {
+                    padding: 5px !important;
+                    font-size: 8px !important;
+                }
+                .pdf-optimized .info-grid {
+                    font-size: 8px !important;
+                    gap: 6px !important;
+                }
+                .pdf-optimized .content {
+                    font-size: 8px !important;
+                    line-height: 1.1 !important;
+                }
+                .pdf-optimized .text-section {
+                    margin-bottom: 6px !important;
+                }
+                .pdf-optimized .justified-text {
+                    margin-bottom: 4px !important;
+                    line-height: 1.1 !important;
+                }
+                .pdf-optimized .section-title {
+                    font-size: 10px !important;
+                    margin: 8px 0 6px 0 !important;
+                }
+                .pdf-optimized .authorization-section {
+                    margin: 8px 0 !important;
+                }
+                .pdf-optimized .radio-option {
+                    margin-bottom: 6px !important;
+                    gap: 4px !important;
+                }
+                .pdf-optimized .radio-option label {
+                    font-size: 8px !important;
+                    line-height: 1.1 !important;
+                }
+                .pdf-optimized .form-fields {
+                    margin: 10px 0 !important;
+                }
+                .pdf-optimized .field-row {
+                    margin-bottom: 6px !important;
+                    gap: 8px !important;
+                }
+                .pdf-optimized .field-group label {
+                    font-size: 7px !important;
+                    margin-bottom: 1px !important;
+                }
+                .pdf-optimized .form-input {
+                    padding: 1px 0 !important;
+                    font-size: 8px !important;
+                    min-height: 10px !important;
+                }
+                .pdf-optimized .minors-section,
+                .pdf-optimized .emergency-section,
+                .pdf-optimized .question-section {
+                    margin-bottom: 8px !important;
+                }
+                .pdf-optimized .question-header {
+                    gap: 4px !important;
+                    margin-bottom: 4px !important;
+                    font-size: 7px !important;
+                }
+                .pdf-optimized .yes-no-options {
+                    gap: 10px !important;
+                    margin-top: 2px !important;
+                }
+                .pdf-optimized .radio-text {
+                    font-size: 7px !important;
+                }
+                .pdf-optimized .question-input-lines {
+                    gap: 4px !important;
+                }
+                .pdf-optimized .signature-section {
+                    margin-top: 10px !important;
+                }
+                .pdf-optimized .date-location {
+                    font-size: 8px !important;
+                    margin-bottom: 12px !important;
+                    gap: 4px !important;
+                }
+                .pdf-optimized .signature-underline {
+                    width: 150px !important;
+                    height: 10px !important;
+                    margin-bottom: 4px !important;
+                }
+                .pdf-optimized .legal-notice {
+                    font-size: 6px !important;
+                    line-height: 1.0 !important;
+                    margin-top: 8px !important;
+                }
+                .pdf-optimized .underline-short {
+                    width: 20px !important;
+                }
+                .pdf-optimized .underline-medium {
+                    width: 60px !important;
+                }
+                .pdf-optimized .underline-field {
+                    min-width: 50px !important;
+                    padding: 0 6px !important;
+                }
+            </style>
         `;
         
-        // Apply print-specific styles to cloned content
-        const printStyles = `
-            .header-content { 
-                display: flex !important; 
-                flex-direction: row !important; 
-                justify-content: space-between !important; 
-                align-items: center !important;
-                text-align: left !important;
-            }
-            .info-grid { 
-                display: grid !important; 
-                grid-template-columns: repeat(3, 1fr) !important; 
-                gap: 15px !important;
-            }
-            .field-row { 
-                display: flex !important; 
-                flex-direction: row !important; 
-                gap: 15px !important; 
-                margin-bottom: 12px !important;
-            }
-            .emergency-row { 
-                display: flex !important; 
-                flex-direction: row !important; 
-                align-items: flex-end !important;
-            }
-            .emergency-name { flex: 2.5 !important; }
-            .emergency-relation { flex: 1 !important; }
-            .emergency-phone { flex: 1.2 !important; }
-            .question-header { 
-                display: flex !important; 
-                flex-direction: row !important; 
-                align-items: center !important; 
-                flex-wrap: wrap !important;
-            }
-            .date-location { 
-                justify-content: flex-start !important; 
-            }
-            .field-group { 
-                flex: 1 !important; 
-            }
-            .field-group label {
-                font-size: 9px !important;
-                font-weight: bold !important;
-                margin-bottom: 3px !important;
-            }
-            .yes-no-options {
-                display: flex !important;
-                gap: 15px !important;
-                margin: 0 10px !important;
-            }
-        `;
-        
-        const styleElement = document.createElement('style');
-        styleElement.textContent = printStyles;
-        clonedElement.appendChild(styleElement);
+        // Insert styles
+        clonedElement.insertAdjacentHTML('beforeend', compactStyles);
         
         // Fix input values in the cloned element
         const originalInputs = element.querySelectorAll('input');
@@ -118,25 +190,25 @@ async function generatePDF() {
                         }
                     }
                 } else {
-                    clonedInputs[index].value = input.value;
                     // Convert input to styled text for PDF
                     const span = document.createElement('span');
                     span.textContent = input.value || '';
                     span.style.cssText = `
                         border-bottom: 1px solid #333;
                         display: inline-block;
-                        min-width: 120px;
-                        padding: 2px 4px;
-                        font-size: 10px;
-                        min-height: 14px;
+                        min-width: 80px;
+                        padding: 1px 3px;
+                        font-size: 8px;
+                        min-height: 10px;
                         vertical-align: bottom;
+                        font-family: Arial, sans-serif;
                     `;
                     clonedInputs[index].parentNode.replaceChild(span, clonedInputs[index]);
                 }
             }
         });
         
-        // Remove radio inputs and replace with text
+        // Remove radio inputs
         const radioInputs = clonedElement.querySelectorAll('input[type="radio"]');
         radioInputs.forEach(radio => {
             radio.style.display = 'none';
@@ -146,16 +218,16 @@ async function generatePDF() {
         document.body.appendChild(tempContainer);
         
         // Wait for rendering
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await new Promise(resolve => setTimeout(resolve, 500));
         
-        // Configure html2canvas with A4-optimized settings
+        // Configure html2canvas for single-page A4
         const canvas = await html2canvas(tempContainer, {
-            scale: 2,
+            scale: 1.5, // Reduced scale for better single-page fit
             useCORS: true,
             allowTaint: true,
             backgroundColor: '#ffffff',
-            width: 794,
-            height: tempContainer.scrollHeight,
+            width: Math.round(210 * 3.78), // 210mm in pixels at 96dpi
+            height: Math.round(297 * 3.78), // 297mm in pixels at 96dpi
             scrollX: 0,
             scrollY: 0,
             logging: false,
@@ -163,85 +235,25 @@ async function generatePDF() {
             foreignObjectRendering: false,
             imageTimeout: 0,
             removeContainer: true,
-            onclone: function(clonedDoc) {
-                // Ensure all styles are applied in the cloned document
-                const clonedBody = clonedDoc.body;
-                clonedBody.style.fontFamily = 'Arial, sans-serif';
-                clonedBody.style.fontSize = '11px';
-                clonedBody.style.lineHeight = '1.3';
-                clonedBody.style.color = '#333';
-            }
+            windowWidth: Math.round(210 * 3.78),
+            windowHeight: Math.round(297 * 3.78)
         });
         
         // Remove temporary container
         document.body.removeChild(tempContainer);
         
-        // Show the PDF button again
-        pdfContainer.style.display = 'block';
-        
-        // Create PDF with A4 dimensions
+        // Create PDF with exact A4 dimensions
         const pdf = new jsPDF('p', 'mm', 'a4');
         
         // A4 dimensions in mm
         const pdfWidth = 210;
         const pdfHeight = 297;
-        const margin = 8;
-        const contentWidth = pdfWidth - (margin * 2);
-        const contentHeight = pdfHeight - (margin * 2);
         
         // Convert canvas to image
-        const imgData = canvas.toDataURL('image/png', 1.0);
+        const imgData = canvas.toDataURL('image/png', 0.95);
         
-        // Calculate scaling to fit A4 perfectly
-        const canvasAspectRatio = canvas.height / canvas.width;
-        const contentAspectRatio = contentHeight / contentWidth;
-        
-        let finalWidth = contentWidth;
-        let finalHeight = contentWidth * canvasAspectRatio;
-        
-        // If content is too tall for one page, we'll handle pagination
-        if (finalHeight > contentHeight) {
-            // Calculate how many pages we need
-            const pagesNeeded = Math.ceil(finalHeight / contentHeight);
-            const pageHeight = contentHeight;
-            
-            for (let page = 0; page < pagesNeeded; page++) {
-                if (page > 0) {
-                    pdf.addPage();
-                }
-                
-                // Calculate the portion of the image for this page
-                const sourceY = (page * pageHeight / finalHeight) * canvas.height;
-                const sourceHeight = Math.min(
-                    (pageHeight / finalHeight) * canvas.height,
-                    canvas.height - sourceY
-                );
-                
-                // Create a canvas for this page
-                const pageCanvas = document.createElement('canvas');
-                const pageCtx = pageCanvas.getContext('2d');
-                pageCanvas.width = canvas.width;
-                pageCanvas.height = sourceHeight;
-                
-                // Create image from original canvas
-                const img = new Image();
-                await new Promise((resolve) => {
-                    img.onload = () => {
-                        pageCtx.drawImage(img, 0, sourceY, canvas.width, sourceHeight, 0, 0, canvas.width, sourceHeight);
-                        
-                        const pageImgData = pageCanvas.toDataURL('image/png', 1.0);
-                        
-                        pdf.addImage(pageImgData, 'PNG', margin, margin, finalWidth, pageHeight, '', 'FAST');
-                        resolve();
-                    };
-                    img.src = imgData;
-                });
-            }
-        } else {
-            // Single page - center vertically
-            const yOffset = margin + (contentHeight - finalHeight) / 2;
-            pdf.addImage(imgData, 'PNG', margin, yOffset, finalWidth, finalHeight, '', 'FAST');
-        }
+        // Add image to PDF - fit exactly to A4 page
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, '', 'FAST');
         
         // Generate filename
         const now = new Date();
@@ -264,8 +276,6 @@ async function generatePDF() {
     } finally {
         // Restore button state
         const pdfBtn = document.querySelector('.btn-pdf');
-        const pdfContainer = document.querySelector('.pdf-button-container');
-        if (pdfContainer) pdfContainer.style.display = 'block';
         if (pdfBtn) {
             pdfBtn.innerHTML = '<span>📄</span> Salvar PDF';
             pdfBtn.disabled = false;
@@ -290,7 +300,7 @@ function showSuccessWithEmailOption(filename, pdfBlob) {
                 <button class="notification-close" onclick="this.closest('.notification').remove()">×</button>
             </div>
             <div class="notification-actions">
-                <button class="btn-email" onclick="sendPDFByEmail('${filename}', arguments[0])" data-blob="">
+                <button class="btn-email" onclick="sendPDFByEmail('${filename}', event)">
                     <span>📧</span> Enviar por Email
                 </button>
                 <button class="btn-whatsapp" onclick="shareToWhatsApp('${filename}')">
@@ -641,7 +651,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     console.log('📋 Formulário EcoAção carregado com sucesso!');
     console.log('💡 Funcionalidades disponíveis:');
-    console.log('   • Geração de PDF otimizada para A4');
+    console.log('   • Geração de PDF otimizada para A4 (página única)');
+    console.log('   • Layout responsivo para mobile e desktop');
     console.log('   • Envio por email automático');
     console.log('   • Compartilhamento via WhatsApp');
     console.log('   • clearFormData(): Limpar dados salvos');
